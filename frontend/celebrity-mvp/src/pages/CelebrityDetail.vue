@@ -1,26 +1,38 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { getCelebrity, getGoods, mockGenerateLink } from '../data/mock'
+import { fetchCelebrityDetail, requestLink } from '../api/client'
 
 const props = defineProps({
   id: { type: String, required: true },
 })
 
 const router = useRouter()
-const celebrity = computed(() => getCelebrity(props.id))
-const goods = computed(() => (celebrity.value ? getGoods(celebrity.value.id) : []))
+const celebrity = ref(null)
+const goods = ref([])
+const source = ref('…')
+const loading = ref(true)
 
 const sheetOpen = ref(false)
 const linkResult = ref(null)
 const copyHint = ref('')
 
-function openLink(item) {
+async function load() {
+  loading.value = true
+  const res = await fetchCelebrityDetail(props.id)
+  celebrity.value = res.detail
+  goods.value = res.detail?.goods || []
+  source.value = res.source === 'api' ? '管理端数据' : '本地 Seed'
+  loading.value = false
+}
+
+onMounted(load)
+watch(() => props.id, load)
+
+async function openLink(item) {
   if (!celebrity.value) return
-  linkResult.value = {
-    goods: item,
-    ...mockGenerateLink(item, celebrity.value),
-  }
+  const data = await requestLink(item.id, celebrity.value.id, item, celebrity.value)
+  linkResult.value = data
   copyHint.value = ''
   sheetOpen.value = true
 }
@@ -45,10 +57,12 @@ async function copyText(text) {
       <button type="button" class="back-btn" @click="router.push({ name: 'list' })">
         ← 返回列表
       </button>
-      <span class="badge">Mock 转链</span>
+      <span class="badge">{{ source }}</span>
     </div>
 
-    <template v-if="celebrity">
+    <p v-if="loading" class="section-label">加载中…</p>
+
+    <template v-else-if="celebrity">
       <section class="profile">
         <div class="profile-top">
           <div class="avatar">待照片</div>
@@ -91,7 +105,7 @@ async function copyText(text) {
 
     <div v-if="sheetOpen && linkResult" class="sheet-mask" @click.self="closeSheet">
       <div class="sheet" role="dialog" aria-modal="true">
-        <h3>推广链接（Mock）</h3>
+        <h3>推广链接{{ linkResult.mock !== false ? '（Mock）' : '' }}</h3>
         <p class="tip">{{ linkResult.tip }}</p>
         <div class="field">
           <label>短链</label>

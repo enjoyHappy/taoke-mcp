@@ -1,0 +1,16 @@
+{
+  "name": "@taoke/celebrity-admin",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Thin celebrity admin API (JSON store) for market-validation MVP",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "reset": "node -e \"import('fs').then(fs=>fs.promises.rm('data/store.json',{force:true})).then(()=>console.log('store cleared'))\""
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.3.0"
+  }
+}
