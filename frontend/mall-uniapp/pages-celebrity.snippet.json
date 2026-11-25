@@ -1,0 +1,11 @@
+{
+  "subPackages": [
+    {
+      "root": "pages/celebrity",
+      "pages": [
+        { "path": "list", "style": { "navigationBarTitleText": "明星代言" } },
+        { "path": "detail", "style": { "navigationBarTitleText": "明星详情" } }
+      ]
+    }
+  ]
+}
